@@ -4,3 +4,27 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# FRAMEWORK
+axum = "0.8.9"
+axum-extra = "0.12.6"
+tokio = { version = "1.53.1", features = ["full"] }
+
+# SERIALIZATION & DESERIALIZATION
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+
+# JWT AUTH
+argon2 = "0.6.0"
+chrono = { version = "0.4.45", features = ["serde"] }
+jsonwebtoken = { version = "11.0.0", features = ["rust_crypto"] }
+
+# VAR ENV GESTION
+dotenvy = "0.15.7"
+
+# LOGS & OBSERVABILITY
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+
+# TIMEOUT & RATE-LIMITING
+tower = { version = "0.5.3", features = ["timeout"] }
+axum-limit = "0.1.0"
