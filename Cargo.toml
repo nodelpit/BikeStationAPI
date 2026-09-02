@@ -1,5 +1,5 @@
 [package]
-name = "BikeStationAPI"
+name = "bike_station_api"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,6 +8,9 @@ edition = "2024"
 axum = "0.8.9"
 axum-extra = "0.12.6"
 tokio = { version = "1.53.1", features = ["full"] }
+
+# FRAMEWORK TEST
+axum-test = "21.1.0"
 
 # SERIALIZATION & DESERIALIZATION
 serde = { version = "1.0.229", features = ["derive"] }
