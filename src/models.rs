@@ -1,6 +1,6 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Station {
     pub id: StationId,
     pub name: String,
@@ -9,8 +9,36 @@ pub struct Station {
     pub free_docks: u32,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, PartialEq)]
 pub struct StationId(pub u32);
+
+pub fn seed_stations() -> Vec<Station> {
+    let station1 = Station {
+        id: StationId(1),
+        name: "station1".to_string(),
+        total_docks: 20,
+        available_bikes: 15,
+        free_docks: 5,
+    };
+
+    let station2 = Station {
+        id: StationId(2),
+        name: "station2".to_string(),
+        total_docks: 20,
+        available_bikes: 12,
+        free_docks: 8,
+    };
+
+    let station3 = Station {
+        id: StationId(3),
+        name: "station3".to_string(),
+        total_docks: 20,
+        available_bikes: 5,
+        free_docks: 15,
+    };
+
+    vec![station1, station2, station3]
+}
 
 #[cfg(test)]
 mod test {
