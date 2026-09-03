@@ -1,10 +1,12 @@
 use axum::http::StatusCode;
 use axum_test::TestServer;
-use bike_station_api::{app, models::Station};
+use bike_station_api::{app, models::Station, state::AppState};
 
 #[tokio::test]
 async fn get_stations_return_200_and_all_stations() {
-    let server = TestServer::new(app());
+    let state = AppState::new();
+
+    let server = TestServer::new(app(state));
 
     let response = server.get("/stations").await;
 
@@ -25,7 +27,9 @@ async fn get_stations_return_200_and_all_stations() {
 
 #[tokio::test]
 async fn get_existing_stations_id_return_200_and_station() {
-    let server = TestServer::new(app());
+    let state = AppState::new();
+
+    let server = TestServer::new(app(state));
 
     let response = server.get("/stations/2").await;
 
@@ -38,7 +42,9 @@ async fn get_existing_stations_id_return_200_and_station() {
 
 #[tokio::test]
 async fn get_non_existing_stations_id_return_404() {
-    let server = TestServer::new(app());
+    let state = AppState::new();
+
+    let server = TestServer::new(app(state));
 
     let response = server.get("/stations/11111111").await;
 
