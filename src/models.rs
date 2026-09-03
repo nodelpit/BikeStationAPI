@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Station {
     pub id: StationId,
     pub name: String,
@@ -9,7 +9,7 @@ pub struct Station {
     pub free_docks: u32,
 }
 
-#[derive(Serialize, Deserialize, PartialEq)]
+#[derive(Serialize, Deserialize, PartialEq, Clone)]
 pub struct StationId(pub u32);
 
 pub fn seed_stations() -> Vec<Station> {

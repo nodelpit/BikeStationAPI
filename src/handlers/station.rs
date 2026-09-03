@@ -1,12 +1,33 @@
-use crate::models::{Station, StationId, seed_stations};
-use axum::{Json, extract::Path, http::StatusCode};
+use crate::{
+    models::{Station, StationId},
+    state::AppState,
+};
 
-pub async fn list_stations() -> Json<Vec<Station>> {
-    Json(seed_stations())
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+};
+
+pub async fn list_stations(State(state): State<AppState>) -> Json<Vec<Station>> {
+    let stations = state.inner.stations.read().unwrap().clone();
+    Json(stations)
 }
 
-pub async fn get_station(Path(id): Path<StationId>) -> Result<Json<Station>, StatusCode> {
-    match seed_stations().into_iter().find(|station| station.id == id) {
+pub async fn get_station(
+    State(state): State<AppState>,
+    Path(id): Path<StationId>,
+) -> Result<Json<Station>, StatusCode> {
+    let station = state
+        .inner
+        .stations
+        .read()
+        .unwrap()
+        .iter()
+        .find(|station| station.id == id)
+        .cloned();
+
+    match station {
         Some(station) => Ok(Json(station)),
         None => Err(StatusCode::NOT_FOUND),
     }
