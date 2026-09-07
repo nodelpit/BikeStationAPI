@@ -53,6 +53,6 @@ pub async fn report_station(
 
         station.clone()
     };
-    
+
     Ok(Json(station))
 }
