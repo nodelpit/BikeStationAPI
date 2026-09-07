@@ -33,4 +33,26 @@ pub async fn get_station(
     }
 }
 
-pub async fn report_station() {}
+pub async fn report_station(
+    State(state): State<AppState>,
+    Path(id): Path<StationId>,
+) -> Result<Json<Station>, StatusCode> {
+    let station = {
+        let mut stations = state.inner.stations.write().unwrap();
+
+        let station = stations
+            .iter_mut()
+            .find(|station| station.id == id)
+            .ok_or(StatusCode::NOT_FOUND)?;
+
+        if station.available_bikes == 0 {
+            return Err(StatusCode::CONFLICT);
+        }
+
+        station.available_bikes -= 1;
+
+        station.clone()
+    };
+    
+    Ok(Json(station))
+}

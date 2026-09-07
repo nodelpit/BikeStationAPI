@@ -37,7 +37,15 @@ pub fn seed_stations() -> Vec<Station> {
         free_docks: 15,
     };
 
-    vec![station1, station2, station3]
+    let station4 = Station {
+        id: StationId(4),
+        name: "station4".to_string(),
+        total_docks: 20,
+        available_bikes: 0,
+        free_docks: 20,
+    };
+
+    vec![station1, station2, station3, station4]
 }
 
 #[cfg(test)]
