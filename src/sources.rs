@@ -3,6 +3,7 @@ use crate::{
     state::AppState,
 };
 use tokio::time::{Duration, interval, sleep, timeout};
+use tokio_util::sync::CancellationToken;
 
 async fn simulated_source(latence: Duration) -> Vec<Station> {
     sleep(latence).await;
@@ -25,12 +26,22 @@ async fn refresh_once(state: &AppState, latence: Duration, timeout_duration: Dur
     }
 }
 
-pub async fn background_task(state: &AppState) {
+pub async fn background_task(state: &AppState, token: CancellationToken) {
     let mut interval = interval(Duration::from_secs(5));
 
     loop {
-        interval.tick().await;
-        refresh_once(state, Duration::from_secs(10), Duration::from_secs(2)).await;
+        tokio::select! {
+            _ = interval.tick() => {
+                println!("Background refresh started");
+                refresh_once(state, Duration::from_secs(1), Duration::from_secs(2)).await;
+                println!("Background refresh finished")
+            }
+
+            _ = token.cancelled() => {
+                println!("Background task shutting down");
+                break;
+            }
+        }
     }
 }
 
@@ -95,5 +106,23 @@ mod test {
 
         let stations = state.inner.stations.read().unwrap();
         assert_eq!(stations.len(), 4);
+    }
+
+    #[tokio::test]
+    async fn test_background_task_shutdown() {
+        let state = AppState::new();
+        let token = CancellationToken::new();
+
+        let handle_token = token.clone();
+        let handle_state = state.clone();
+
+        let handle =
+            tokio::spawn(async move { background_task(&handle_state, handle_token.clone()).await });
+
+        token.cancel();
+
+        let result = timeout(Duration::from_millis(500), handle).await;
+
+        assert!(result.is_ok());
     }
 }
