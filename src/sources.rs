@@ -4,6 +4,7 @@ use crate::{
 };
 use tokio::time::{Duration, interval, sleep, timeout};
 use tokio_util::sync::CancellationToken;
+use tracing::{debug, info, warn};
 
 async fn simulated_source(latence: Duration) -> Vec<Station> {
     sleep(latence).await;
@@ -21,7 +22,7 @@ async fn refresh_once(state: &AppState, latence: Duration, timeout_duration: Dur
             *stations = new_station
         }
         Err(_) => {
-            eprintln!("request timeout - {:?} elapsed", timeout_duration);
+            warn!(?timeout_duration, "source timed out");
         }
     }
 }
@@ -32,13 +33,13 @@ pub async fn background_task(state: &AppState, token: CancellationToken) {
     loop {
         tokio::select! {
             _ = interval.tick() => {
-                println!("Background refresh started");
+                debug!("Background refresh started");
                 refresh_once(state, Duration::from_secs(1), Duration::from_secs(2)).await;
-                println!("Background refresh finished")
+                debug!("Background refresh finished")
             }
 
             _ = token.cancelled() => {
-                println!("Background task shutting down");
+                info!("Background task shutting down");
                 break;
             }
         }
