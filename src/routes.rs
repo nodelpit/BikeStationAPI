@@ -1,10 +1,14 @@
+use std::time::Duration;
+
 use axum::{
     Router,
+    http::StatusCode,
     routing::{get, post},
 };
 
 use tower_http::{
     LatencyUnit,
+    timeout::TimeoutLayer,
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
@@ -33,4 +37,8 @@ pub fn app(state: AppState) -> Router {
                         .latency_unit(LatencyUnit::Micros),
                 ),
         ) // traçage de toutes les requetes http
+        .layer(TimeoutLayer::with_status_code(
+            StatusCode::REQUEST_TIMEOUT,
+            Duration::from_secs(5),
+        )) // timeout de 5s sur toutes les routes
 }
