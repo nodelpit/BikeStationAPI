@@ -1,9 +1,12 @@
+use std::net::SocketAddr;
 use tokio::net::TcpListener;
 
 use bike_station_api::{app, shutdown::shutdown_signal, sources::background_task, state::AppState};
 use tokio_util::sync::CancellationToken;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
+
+use axum_governor::{BoxedGovernorLayer, GovernorConfigBuilder, Quota, extractor::PeerIp, nz};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,6 +22,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
     info!("Axum server started");
 
+    let governor_cfg = GovernorConfigBuilder::default()
+        .with_extractor(PeerIp::default())
+        .expect_connect_info()
+        .quota_default(Quota::requests_per_second(nz!(50u32)))
+        .finish()
+        .unwrap();
+
+    let boxed_governor = BoxedGovernorLayer::from_config(governor_cfg);
+
     let state = AppState::new();
     let token = CancellationToken::new();
 
@@ -31,9 +43,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let listener = TcpListener::bind("127.0.0.1:3000").await?;
 
-    axum::serve(listener, app(state))
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    axum::serve(
+        listener,
+        app(state, boxed_governor).into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal())
+    .await?;
 
     token.cancel();
 

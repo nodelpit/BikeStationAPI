@@ -6,6 +6,7 @@ use axum::{
     routing::{get, post},
 };
 
+use axum_governor::BoxedGovernorLayer;
 use tower_http::{
     LatencyUnit,
     timeout::TimeoutLayer,
@@ -20,7 +21,7 @@ use crate::handlers::{
 
 use crate::state::AppState;
 
-pub fn app(state: AppState) -> Router {
+pub fn app(state: AppState, governor: BoxedGovernorLayer) -> Router {
     Router::new()
         .route("/stations", get(list_stations)) // liste des stations avec leur état (vélos dispo, bornes libres)
         .route("/stations/{id}", get(get_station)) // état d'une station
@@ -37,6 +38,7 @@ pub fn app(state: AppState) -> Router {
                         .latency_unit(LatencyUnit::Micros),
                 ),
         ) // traçage de toutes les requetes http
+        .layer(governor) // rate-limiting sur toutes les routes
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
             Duration::from_secs(5),

@@ -1,12 +1,12 @@
+mod common;
+
 use axum::http::StatusCode;
 use axum_test::TestServer;
-use bike_station_api::{app, models::Station, state::AppState};
+use bike_station_api::models::Station;
 
 #[tokio::test]
 async fn get_stations_return_200_and_all_stations() {
-    let state = AppState::new();
-
-    let server = TestServer::new(app(state));
+    let server = TestServer::new(common::test_app());
 
     let response = server.get("/stations").await;
 
@@ -27,9 +27,7 @@ async fn get_stations_return_200_and_all_stations() {
 
 #[tokio::test]
 async fn get_existing_stations_id_return_200_and_station() {
-    let state = AppState::new();
-
-    let server = TestServer::new(app(state));
+    let server = TestServer::new(common::test_app());
 
     let response = server.get("/stations/2").await;
 
@@ -42,9 +40,7 @@ async fn get_existing_stations_id_return_200_and_station() {
 
 #[tokio::test]
 async fn get_non_existing_stations_id_return_404() {
-    let state = AppState::new();
-
-    let server = TestServer::new(app(state));
+    let server = TestServer::new(common::test_app());
 
     let response = server.get("/stations/11111111").await;
 
@@ -53,9 +49,7 @@ async fn get_non_existing_stations_id_return_404() {
 
 #[tokio::test]
 async fn report_station_with_bikes() {
-    let state = AppState::new();
-
-    let server = TestServer::new(app(state));
+    let server = TestServer::new(common::test_app());
 
     let response = server.post("/stations/1/report").await;
 
@@ -68,9 +62,7 @@ async fn report_station_with_bikes() {
 
 #[tokio::test]
 async fn report_station_with_0_bike() {
-    let state = AppState::new();
-
-    let server = TestServer::new(app(state));
+    let server = TestServer::new(common::test_app());
 
     let response = server.post("/stations/4/report").await;
 
@@ -79,9 +71,7 @@ async fn report_station_with_0_bike() {
 
 #[tokio::test]
 async fn report_station_on_inexistant_id() {
-    let state = AppState::new();
-
-    let server = TestServer::new(app(state));
+    let server = TestServer::new(common::test_app());
 
     let response = server.post("/stations/1111111/report").await;
 
