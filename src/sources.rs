@@ -6,6 +6,10 @@ use tokio::time::{Duration, interval, sleep, timeout};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, info, warn};
 
+const BACKGROUND_TASK_INTERVAL: Duration = Duration::from_secs(5);
+const SOURCE_LATENCY: Duration = Duration::from_secs(1);
+const SOURCE_TIMEOUT: Duration = Duration::from_secs(2);
+
 async fn simulated_source(latence: Duration) -> Vec<Station> {
     sleep(latence).await;
 
@@ -28,13 +32,13 @@ async fn refresh_once(state: &AppState, latence: Duration, timeout_duration: Dur
 }
 
 pub async fn background_task(state: &AppState, token: CancellationToken) {
-    let mut interval = interval(Duration::from_secs(5));
+    let mut interval = interval(BACKGROUND_TASK_INTERVAL);
 
     loop {
         tokio::select! {
             _ = interval.tick() => {
                 debug!("Background refresh started");
-                refresh_once(state, Duration::from_secs(1), Duration::from_secs(2)).await;
+                refresh_once(state, SOURCE_LATENCY, SOURCE_TIMEOUT).await;
                 debug!("Background refresh finished")
             }
 

@@ -21,6 +21,8 @@ use crate::handlers::{
 
 use crate::state::AppState;
 
+const HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
+
 pub fn app(state: AppState, governor: BoxedGovernorLayer) -> Router {
     Router::new()
         .route("/stations", get(list_stations)) // liste des stations avec leur état (vélos dispo, bornes libres)
@@ -30,7 +32,7 @@ pub fn app(state: AppState, governor: BoxedGovernorLayer) -> Router {
         .with_state(state) // sonde de vie, utile pour l'observabilité
         .layer(TimeoutLayer::with_status_code(
             StatusCode::REQUEST_TIMEOUT,
-            Duration::from_secs(5),
+            HTTP_REQUEST_TIMEOUT,
         )) // timeout de 5s sur toutes les routes
         .layer(governor) // rate-limiting sur toutes les routes
         .layer(
