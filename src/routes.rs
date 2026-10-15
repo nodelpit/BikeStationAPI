@@ -28,6 +28,11 @@ pub fn app(state: AppState, governor: BoxedGovernorLayer) -> Router {
         .route("/stations/{id}/report", post(report_station)) // signaler un vélo défectueux (la seule écriture)
         .route("/health", get(health))
         .with_state(state) // sonde de vie, utile pour l'observabilité
+        .layer(TimeoutLayer::with_status_code(
+            StatusCode::REQUEST_TIMEOUT,
+            Duration::from_secs(5),
+        )) // timeout de 5s sur toutes les routes
+        .layer(governor) // rate-limiting sur toutes les routes
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new())
@@ -38,9 +43,4 @@ pub fn app(state: AppState, governor: BoxedGovernorLayer) -> Router {
                         .latency_unit(LatencyUnit::Micros),
                 ),
         ) // traçage de toutes les requetes http
-        .layer(governor) // rate-limiting sur toutes les routes
-        .layer(TimeoutLayer::with_status_code(
-            StatusCode::REQUEST_TIMEOUT,
-            Duration::from_secs(5),
-        )) // timeout de 5s sur toutes les routes
 }
